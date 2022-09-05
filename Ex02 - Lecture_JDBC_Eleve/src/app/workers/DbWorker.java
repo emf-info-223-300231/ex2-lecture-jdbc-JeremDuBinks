@@ -84,6 +84,7 @@ public class DbWorker implements DbWorkerItf {
                listePersonnes.add(personne);
             }
         } catch (SQLException ex) {
+            throw new MyDBException(SystemLib.getFullMethodName(), ex.getMessage());
         }
 
         return listePersonnes;
