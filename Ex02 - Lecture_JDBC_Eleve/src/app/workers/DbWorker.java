@@ -3,6 +3,7 @@ package app.workers;
 import app.beans.Personne;
 import app.exceptions.MyDBException;
 import app.helpers.SystemLib;
+import com.sun.javafx.scene.control.skin.VirtualFlow;
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
@@ -27,9 +28,9 @@ public class DbWorker implements DbWorkerItf {
         final String user = "root";
         final String password = "emf123";
 
-        System.out.println("url:" + url_remote);
+        System.out.println("url:" + url_local);
         try {
-            dbConnexion = DriverManager.getConnection(url_remote, user, password);
+            dbConnexion = DriverManager.getConnection(url_local, user, password);
         } catch (SQLException ex) {
             throw new MyDBException(SystemLib.getFullMethodName(), ex.getMessage());
         }
@@ -72,21 +73,46 @@ public class DbWorker implements DbWorkerItf {
 
     public List<Personne> lirePersonnes() throws MyDBException {
         listePersonnes = new ArrayList<>();
-        
+        try {
+            Statement st = dbConnexion.createStatement();
+            ResultSet rs = st.executeQuery("select nom, prenom from t_personne");
+
+            while (rs.next()) {                
+               String nom = rs.getString("Nom");
+               String prenom = rs.getString("Prenom");
+               Personne personne = new Personne(nom, prenom);
+               listePersonnes.add(personne);
+            }
+        } catch (SQLException ex) {
+            throw new MyDBException(SystemLib.getFullMethodName(), ex.getMessage());
+        }
+
         return listePersonnes;
     }
 
     @Override
     public Personne precedentPersonne() throws MyDBException {
-
-        return null;
+        
+        if (listePersonnes == null) {
+            lirePersonnes();
+        }
+        if (index >= 1) {
+            index = index - 1;
+        }
+        return listePersonnes.get(index);
 
     }
 
     @Override
-    public Personne suivantPersonne() throws MyDBException {
-
-        return null;
+    public Personne suivantPersonne() throws MyDBException {      
+        
+        if (listePersonnes == null) {
+            lirePersonnes();
+        }
+        if (index < listePersonnes.size()) {
+            index = index + 1;
+        }
+        return listePersonnes.get(index);
 
     }
 
